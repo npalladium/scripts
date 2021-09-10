@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+set -Eeuo pipefail
+
+USAGE="
+deldir: delete directories quickly using rsync
+
+Usage:
+  deldir <dir_to_delete>
+
+Options:
+  -h    Show this message.
+"
+
+help() {
+  echo "$USAGE"
+}
+
+if [[ $# == 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  help
+  exit 1
+fi
+
+set -x
+
+mkdir -p _emptydir
+rsync -a --delete _emptydir/ "$1"
+rmdir _emptydir "$1"
