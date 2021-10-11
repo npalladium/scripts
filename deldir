@@ -25,5 +25,3 @@ set -x
 mkdir -p _emptydir
 rsync -a --delete _emptydir/ "$1"
 rmdir _emptydir "$1"
-
-# TODO: Explore find because https://www.slashroot.in/comment/1286#comment-1286
