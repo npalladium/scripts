@@ -1,0 +1,25 @@
+#! /usr/bin/env bash
+set -Eeuo pipefail
+
+USAGE="
+ngex: generate new ng application to experiment with
+
+Usage:
+  ngex  <name>
+
+Options:
+  -h    Show this message.
+"
+
+help() {
+  echo "$USAGE"
+}
+
+if [[ $# == 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  help
+  exit 1
+fi
+
+set -x
+
+ng new --routing --minimal --style css --skip-git "$1"
