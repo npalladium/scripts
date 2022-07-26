@@ -1,0 +1,56 @@
+#! /usr/bin/env bash
+set -o pipefail -o errexit -o nounset -o errtrace
+
+readonly namespace="$1"
+readonly serviceAccount="$2"
+
+USAGE="
+kcg: generate kubeconfig from service account token
+
+Usage:
+  kcg  <namespace> <serviceAccount>
+
+Options:
+  -h    Show this message.
+"
+
+help() {
+  echo "$USAGE"
+}
+
+if [[ $# == 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  help
+  exit 1
+fi
+
+main() {
+  local -r currentContext=$(kubectl config current-context)
+  local -r server=$(kubectl cluster-info | grep -e 'Kubernetes master' -e 'Kubernetes control plane' | awk '/http/ {print $NF}'| gsed "s,\x1B\[[0-9;]*[a-zA-Z],,g")
+  local -r secretName=$(kubectl --namespace $namespace get serviceAccount $serviceAccount -o jsonpath='{.secrets[0].name}')
+  local -r ca=$(kubectl --namespace $namespace get secret/$secretName -o jsonpath='{.data.ca\.crt}')
+  local -r token=$(kubectl --namespace $namespace get secret/$secretName -o jsonpath='{.data.token}' | base64 --decode)
+
+  echo "
+---
+apiVersion: v1
+kind: Config
+clusters:
+  - name: ${currentContext}
+    cluster:
+      certificate-authority-data: ${ca}
+      server: ${server}
+contexts:
+  - name: ${serviceAccount}@${currentContext}
+    context:
+      cluster: ${currentContext}
+      namespace: default
+      user: ${serviceAccount}
+users:
+  - name: ${serviceAccount}
+    user:
+      token: ${token}
+current-context: ${serviceAccount}@${currentContext}
+"
+}
+
+main
