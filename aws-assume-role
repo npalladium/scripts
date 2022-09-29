@@ -1,0 +1,40 @@
+#! /usr/bin/env bash
+set -o pipefail -o errexit -o nounset -o errtrace
+
+readonly arn="$1"
+readonly session="$2"
+readonly profile="${3:-${AWS_PROFILE:-default}}"
+
+USAGE="
+aws-assume-role: switch role
+
+Usage:
+  aws-assume-role  <role_arn> <session_name> <profile>
+
+Options:
+  -h    Show this message.
+"
+
+help() {
+  echo "$USAGE"
+}
+
+if [[ $# == 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+  help
+  exit 1
+fi
+
+main() {
+  local -r OUT=$(AWS_PAGER="" aws sts assume-role --role-arn $arn --role-session-name $session --profile $profile);
+
+  local -r AWS_ACCESS_KEY_ID=$(echo $OUT | jq -r '.Credentials.AccessKeyId');\
+  local -r AWS_SECRET_ACCESS_KEY=$(echo $OUT | jq -r '.Credentials.SecretAccessKey');\
+  local -r AWS_SESSION_TOKEN=$(echo $OUT | jq -r '.Credentials.SessionToken');
+
+  if [[ -n "$AWS_ACCESS_KEY_ID" ]]; then
+    printf "export AWS_ACCESS_KEY_ID=\"%s\"\\n" $AWS_ACCESS_KEY_ID;\
+    printf "export AWS_SECRET_ACCESS_KEY=\"%s\"\\n" $AWS_SECRET_ACCESS_KEY;\
+    printf "export AWS_SESSION_TOKEN=\"%s\"\\n\\n\\n" $AWS_SESSION_TOKEN;
+  fi
+}
+main
