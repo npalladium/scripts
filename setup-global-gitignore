@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -o errexit -o noclobber -o nounset -o pipefail
+
+USAGE="
+setup-global-gitignore: setup a global gitignore
+
+Usage:
+  $0
+"
+
+if [[ $# != 0 ]]; then
+  echo "$USAGE"
+  exit 1
+fi
+
+cat << EOF > ~/.gitignore.global
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Use https://www.toptal.com/developers/gitignore/ to generate extra entries.
+
+# These entries ARE NOT exhuastive and that is by design to keep this file manageable.
+
+### General ###
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+*.log
+
+### Editor and IDE Files ###
+.idea
+*.iws
+*.sublime-workspace
+*.swp
+*.tmp
+.vscode/
+.vs/
+
+### Mac OS X files ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### Terraform and Terragrunt ###
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# terragrunt cache directories
+**/.terragrunt-cache/*
+
+### Java ###
+# Compiled class file
+*.class
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+### Node ###
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Caches
+.npm
+.eslintcache
+.stylelintcache
+.cache/
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+develop-eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+EOF
+
+set -o xtrace
+git config --global core.excludesfile ~/.gitignore.global
